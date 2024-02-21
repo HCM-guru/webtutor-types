@@ -1,4 +1,10 @@
-interface XmElem<T, ForeignElem = never> {
+type XmlElem<T, F = never, P = never, D = never> = {
+  [K in keyof T]: T[K] extends XmlElem<infer _T, infer _F, infer _P, infer _D>
+    ? XmlElem<_T, _F, _P | P, _D | D>
+    : T[K] extends XmlMultiElem<infer _T, infer _F, infer _P, infer _D>
+      ? XmlMultiElem<_T, _F, _P | P, _D | D>
+      : T[K];
+} & {
   /**
    * Возвращает массив названий атрибутов элемента.
    * Элемент должен быть динамическим, поскольку для статических элементов атрибуты не поддерживаются.
@@ -9,7 +15,7 @@ interface XmElem<T, ForeignElem = never> {
    * Идет вверх по иерархии элементов, и возвращает первый с атрибутом `MULTIPLE=1`.
    * Если такого элемента нет, возвращается ошибка.
    */
-  BaseMultipleElem: XmlElem<T> | never;
+  BaseMultipleElem: XmlElem<T, F, P, D> | never;
 
   /**
    * Возвращает индекс текущего элемента внутри родительского элемента, начиная с `0`.
@@ -21,7 +27,7 @@ interface XmElem<T, ForeignElem = never> {
    * Возвращает документ, в состав которого входит текущий элемент.
    * Если документа нет - возвращает ошибку.
    */
-  Doc: XmlDocument | never;
+  Doc: D | never;
 
   /**
    * Возвращает основное отображаемое значение элемента для внешнего использования,
@@ -58,7 +64,7 @@ interface XmElem<T, ForeignElem = never> {
    * Возвращает соответствующий элемент целевого массива (описанного в атрибуте `FOREIGN-ARRAY`).
    * Если элемент не найден - возвращает ошибку.
    */
-  ForeignElem: ForeignElem | never;
+  ForeignElem: F | never;
 
   /**
    * Атрибут возвращает `URL` объекта, на который ссылается атрибут ForeignElem из текущего элемента.
@@ -184,7 +190,7 @@ interface XmElem<T, ForeignElem = never> {
    * дочерних элементов родительского элемента. Если текущий элемент
    * является последним, возвращается ошибка.
    */
-  NextSibling: XmlElem<T> | never;
+  NextSibling: XmlElem<T, F, P, D> | never;
 
   /**
    * Работает только для записей в каталоге, или корневых элементов объектных документов.
@@ -200,13 +206,13 @@ interface XmElem<T, ForeignElem = never> {
    * Возвращает документ, в состав которого входит текущий элемент.
    * Если элемента не относится к документу - возвращает `undefined`.
    */
-  OptDoc: XmlDocument | undefined;
+  OptDoc: D | undefined;
 
   /**
    * Возвращает соответствующий элемент целевого массива, описанного в атрибуте `FOREIGN-ARRAY`.
    * Если элемент не найден - возвращает `undefined`.
    */
-  OptForeignElem: ForeignElem | undefined;
+  OptForeignElem: F | undefined;
 
   /**
    * В случае если элемент находится в документе, открытом в экране, возвращает ссылку на экран, иначе - `undefined`.
@@ -218,13 +224,13 @@ interface XmElem<T, ForeignElem = never> {
    * Возвращает родительский элемент текущего элемента, если таковой есть.
    * Если родительского элемента нет, возвращает ошибку.
    */
-  Parent: XmlTopElem | never;
+  Parent: P | never;
 
   /**
    * Возвращает предыдущий относительно текущего элемент в списке дочерних элементов родительского элемента.
    * Если элемент является первым, возвращает ошибку.
    */
-  PrevSibling: XmlElem<T> | never;
+  PrevSibling: XmlElem<T, F, P, D> | never;
 
   /**
    * Возвращает первичное отображаемое имя объекта.
@@ -237,7 +243,7 @@ interface XmElem<T, ForeignElem = never> {
    * Первичный ключ должен быть описан в форме как `PRIMARY-KEY`.
    * Для записи в каталоге первичным ключом автоматически считается элемент `<id>`.
    */
-  PrimaryKey: XmlElem<string | number>;
+  PrimaryKey: XmlElem<string | number, F, P, D>;
 
   /**
    * Атрибут работает аналогично {@link ObjectUrl}, но учитывает возможность наследования.
@@ -349,14 +355,14 @@ interface XmElem<T, ForeignElem = never> {
    * @param {string} type - Тип дочернего элемента.
    * Смотрите также {@link InsertChild}.
    */
-  AddChild(name?: string, type?: string): XmlElem<T>;
+  AddChild(name?: string, type?: string): XmlElem<T, F, P, D>;
 
   /**
    * Добавляет уже созданный элемент в качестве в качестве дочернего по отношению к текущему элементу.
    * Аргументом может быть элемент, уже созданный каким-либо образом, например, через функцию {@link CrateElem}.
    * @param {XmlElem<T>} elem - Созданный заранее элемент.
    */
-  AddChildElem(element: XmlElem<T>): void;
+  AddChildElem(element: XmlElem<T, F, P, D>): void;
 
   /**
    * Добавляет динамический дочерний элемент к текущему элементу и возвращает
@@ -365,7 +371,7 @@ interface XmElem<T, ForeignElem = never> {
    * @param {string} name - Имя элемента.
    * @param {string} type - Тип элемента.
    */
-  AddDynamicChild(name: string, type?: string): XmlElem<T>;
+  AddDynamicChild(name: string, type?: string): XmlElem<T, F, P, D>;
 
   /**
    * Копирует в текущий элемент данные из другого элемента, включая дочерние элементы.
@@ -390,15 +396,16 @@ interface XmElem<T, ForeignElem = never> {
    * Смотри также методы {@link OptChild} и {@link EvalPath}.
    * @param {string} name - Имя дочернего элемента.
    */
-  Child(name: string): XmlElem<T> | never;
+  Child<K extends keyof T>(index: K): T[K];
+  // Child(name: string): XmlElem<T, F, P, D> | never;
 
-  /**
-   * Возвращает дочерний элемент по индексу.
-   * Если элемента с заданным индексом нет, выдает ошибку.
-   * Смотри также методы {@link OptChild} и {@link EvalPath}.
-   * @param {index} index - Индекс дочернего элемента.
-   */
-  Child(index: number): XmlElem<T> | never;
+  // /**
+  //  * Возвращает дочерний элемент по индексу.
+  //  * Если элемента с заданным индексом нет, выдает ошибку.
+  //  * Смотри также методы {@link OptChild} и {@link EvalPath}.
+  //  * @param {number | string} index - Индекс дочернего элемента.
+  //  */
+  // Child<K extends keyof T>(index: number): T[K];
 
   /**
    * Проверяет, существует ли дочерний элемент с заданным значением ключевого поля.
@@ -450,7 +457,7 @@ interface XmElem<T, ForeignElem = never> {
    * Создает клон текущего элемента и возвращает ссылку на него.
    * Новый элемент не имеет родительского элемента.
    */
-  Clone(): XmlElem<T>;
+  Clone(): XmlElem<T, F, P, D>;
 
   /**
    * Удаляет элемент.
@@ -515,7 +522,7 @@ interface XmElem<T, ForeignElem = never> {
    * Если путь неверный, возвращается ошибка.
    * @param {string} path - Путь от текущего до целевого элемента, с разделением имен узлов точками.
    */
-  EvalPath(path: string): XmlElem<unknown>;
+  EvalPath(path: string): XmlElem<unknown, F, P, D>;
 
   /**
    * Проверяет, существует ли в форме текущего элемента дочерний элемент с таким именем,
@@ -534,7 +541,7 @@ interface XmElem<T, ForeignElem = never> {
    * @param {string} name - Имя атрибута.
    * @param {string} value - Значение атрибута.
    */
-  GetChildByAttrValue(name: string, value: unknown): XmlElem<unknown>;
+  GetChildByAttrValue<K>(name: string, value: K): XmlElem<T, F, P, D>;
 
   /**
    * Возвращает дочерний элемент с заданным значением ключевого поля.
@@ -544,7 +551,7 @@ interface XmElem<T, ForeignElem = never> {
    * @param {string} name - Имя элемента, являющегося ключом. Необязательный аргумент.
    * Если имя ключа не указано, используется первичный ключ.
    */
-  GetChildByKey<K>(value: K, name?: string): XmlElem<unknown>;
+  GetChildByKey<K>(value: K, name?: string): XmlElem<T, F, P, D>;
 
   /**
    * Возвращает дочерний элемент с заданным значением ключевого поля.
@@ -553,7 +560,7 @@ interface XmElem<T, ForeignElem = never> {
    * @param {string} name - Имя элемента, являющегося ключом. Необязательный аргумент.
    * Если имя ключа не указано, используется первичный ключ.
    */
-  GetOptChildByKey<K>(value: K, name?: string): XmlElem<T> | undefined;
+  GetOptChildByKey<K>(value: K, name?: string): XmlElem<T, F, P, D> | undefined;
 
   /**
    * Возвращает текстовое прдставление значения элемента.
@@ -589,7 +596,11 @@ interface XmElem<T, ForeignElem = never> {
    * @param {string} name - Имя дочернего элемента.
    * @param {string} type - Тип дочернего элемента.
    */
-  InsertChild(index: number, name?: string, type?: string): XmlElem<unknown>;
+  InsertChild(
+    index: number,
+    name?: string,
+    type?: string
+  ): XmlElem<T, F, P, D>;
 
   /**
    * Загружает значение элемента и его дочерних элементов из `URL`, содержащего данные в формате `XML`.
@@ -634,7 +645,7 @@ interface XmElem<T, ForeignElem = never> {
    * @param {K} value - Значение ключа.
    * @param {string} name - Имя элемента, являющегося ключом. Если имя ключа не указано, используется первичный ключ.
    */
-  ObtainChildByKey<K>(value: K, name?: string): XmlElem<unknown>;
+  ObtainChildByKey<K>(value: K, name?: string): XmlElem<unknown, F, P, D>;
 
   /**
    * Метод пытается найти среди дочерних элементов элемент с заданным значением
@@ -643,7 +654,7 @@ interface XmElem<T, ForeignElem = never> {
    * и возвращает вновь созданный элемент.
    * @param {K} value - Значение поля.
    */
-  ObtainChildByValue<K>(value: K): XmlElem<unknown>;
+  ObtainChildByValue<K>(value: K): XmlElem<unknown, F, P, D>;
 
   /**
    * Возвращает значение атрибута текущего элемента. Если атрибута с заданным именем нет,
@@ -660,7 +671,7 @@ interface XmElem<T, ForeignElem = never> {
    * Смотри также метод {@link Child}.
    * @param {string} name - Имя дочернего элемента.
    */
-  OptChild(name: string): XmlElem<unknown>;
+  OptChild(name: string): XmlElem<unknown, F, P, D>;
 
   /**
    * Метод находит (среди дочерних элементов текущего элемента) элемент, имеющий атрибут с заданным именем,
@@ -734,6 +745,4 @@ interface XmElem<T, ForeignElem = never> {
    * Пересчет производится по полям, имеющим атрибут `EXPR` или `EXPR-INIT`.
    */
   UpdateValues(): void;
-}
-
-type XmlElem<T, ForeignElem = never> = XmElem<T, ForeignElem> & T;
+};

@@ -66,7 +66,7 @@ interface CollaboratorDocumentLastData {
   avatar_filename: XmlElem<string>;
 }
 
-type CollaboratorDocumentTopElem = XmlTopElem &
+type CollaboratorDocumentTopElem = XmlElem<
 PersonBase &
 PassportDataBase &
 FileListBaseFile &
@@ -75,8 +75,8 @@ PathSubsBase &
 KnowledgePartsBase &
 KnowledgePartsBaseOld &
 CustomElemsBase &
-PersonObjectLinksBase & {
-  Doc: CollaboratorDocument;
+PersonObjectLinksBase &
+{
   id: XmlElem<number>;
   code: XmlElem<string>;
   eid: XmlElem<string>;
@@ -169,8 +169,6 @@ PersonObjectLinksBase & {
     password: string
   ): unknown[] | void;
   clear_subs_fields(): void;
-};
+}>;
 
-type CollaboratorDocument = XmlDocument & {
-  TopElem: CollaboratorDocumentTopElem;
-};
+type CollaboratorDocument = XmlDocument<CollaboratorDocumentTopElem>;

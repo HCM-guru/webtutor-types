@@ -1,4 +1,4 @@
-type PositionCatalogDocumentTopElem = XmlTopElem & { Doc: PositionCatalogDocument } & {
+type PositionCatalogDocumentTopElem = XmlElem<{
   id: XmlElem<number>;
   code: XmlElem<string>;
   name: XmlElem<string>;
@@ -22,8 +22,6 @@ type PositionCatalogDocumentTopElem = XmlTopElem & { Doc: PositionCatalogDocumen
   staff_position_id: XmlElem<number>;
   modification_date: XmlElem<Date>;
   app_instance_id: XmlElem<string>;
-};
+}>;
 
-type PositionCatalogDocument = XmlDocument & {
-  TopElem: PositionCatalogDocumentTopElem;
-};
+type PositionCatalogDocument = XmlDocument<PositionCatalogDocumentTopElem>;

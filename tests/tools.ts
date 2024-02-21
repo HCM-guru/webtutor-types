@@ -6,6 +6,8 @@ if (collaborator !== undefined) {
   if (collaborator.TopElem.position_id.OptForeignElem !== undefined) {
     var foreignName = tools.get_foreign_field(collaborator.TopElem.position_id.OptForeignElem, "basic_rate", "");
   }
+
+  collaborator.TopElem.Doc.TopElem.position_date.Value;
 }
 
 tools.object_filling(null, collaborator2.TopElem, collaboratorId, null);
