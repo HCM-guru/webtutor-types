@@ -2065,6 +2065,21 @@ declare function RegisterSubForm(formUrl: string, formPath: string): string;
  * IsEmptyValue("") === true
  * ```
  */
+declare function IsEmptyValue(arg: Object): false;
+
+/**
+ * Проверяет, является ли значение `undefined`, `null` либо пустой строкой.
+ * Позволяет писать универсальный код, не зная точный тип данных переданного аргумента.
+ * @param {any} arg - Любое значение.
+ * @returns {boolean} Результат.
+ * @example
+ * ```
+ * IsEmptyValue(123) === false
+ * IsEmptyValue("123") === false
+ * IsEmptyValue(null) === true
+ * IsEmptyValue("") === true
+ * ```
+ */
 declare function IsEmptyValue(arg: unknown): arg is undefined | null | "";
 
 /**
